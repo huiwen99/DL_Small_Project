@@ -130,7 +130,7 @@ class Lung_Dataset(Dataset):
             class_val = 'non-covid'
             index -= second_val
             label = torch.Tensor([0, 0, 1])
-        im = self.open_img(self.groups, class_val, index)
+        im = self.open_img(class_val, index)
         im = transforms.functional.to_tensor(np.array(im)).float()
         return im, label
 
