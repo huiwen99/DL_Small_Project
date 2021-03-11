@@ -10,7 +10,7 @@ def load_train(batch_size):
     train_loader = DataLoader(ld_train, batch_size=batch_size, shuffle=True)
     return train_loader
 
-def load_train(batch_size):
+def load_test(batch_size):
     """
     Returns a DataLoader from test dataset
     """
