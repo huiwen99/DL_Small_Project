@@ -1,10 +1,6 @@
-# Matplotlib
 import matplotlib.pyplot as plt
-# Numpy
 import numpy as np
-# Pillow
 from PIL import Image
-# Torch
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -38,15 +34,14 @@ class Lung_Dataset(Dataset):
                               'covid': None,\
                               'non-covid': None}
 
-
     def describe(self):
         """
         Descriptor function.
         Will print details about the dataset when called.
         """
-
+        
         msg = "This is the {} dataset of the Lung Dataset".format(self.groups)
-        msg += "used for the Small Project in the  50.039 Deep Learning class. \n"
+        msg += "used for the Small Project in the 50.039 Deep Learning class. \n"
         msg += "It contains a total of {} images, ".format(sum(self.dataset_numbers.values()))
         msg += "of size {} by {}.\n".format(self.img_size[0], self.img_size[1])
         msg += "The images are stored in the following locations "
@@ -134,10 +129,55 @@ class Lung_Dataset(Dataset):
         im = transforms.functional.to_tensor(np.array(im)).float()
         return im, label
 
-
-class Lung_Train_Dataset(Lung_Dataset):
+class Lung_Dataset_BC1(Lung_Dataset):
     """
-       Specific Dataset class for training dataset.
+        Generic Dataset class for Binary Classifier 1. Used as parent class for each subgroup (train, test, val).
+    """
+
+    def __init__(self):
+        super().__init__()
+
+    def describe(self):
+        """
+        Descriptor function.
+        Will print details about the dataset when called.
+        """
+        
+        Lung_Dataset.describe(self) 
+        msg = "Note that for each subgroup, the covid and non-covid images will be combined and labelled as infected."
+        print(msg)
+    
+    def __getitem__(self, index):
+        """
+        Getitem special method.
+
+        Expects an integer value index, between 0 and len(self) - 1.
+
+        Returns the image and its label as a one hot vector, both
+        in torch tensor format in dataset.
+        """
+
+        # Get item special method
+        first_val = int(list(self.dataset_numbers.values())[0])
+        second_val = int(list(self.dataset_numbers.values())[1]) + first_val
+        if index < first_val:
+            class_val = 'normal'
+            label = torch.Tensor([1, 0])
+        elif index < second_val:
+            class_val = 'covid'
+            index -= first_val
+            label = torch.Tensor([0, 1])
+        else:
+            class_val = 'non-covid'
+            index -= second_val
+            label = torch.Tensor([0, 1])
+        im = self.open_img(class_val, index)
+        im = transforms.functional.to_tensor(np.array(im)).float()
+        return im, label
+    
+class Lung_Train_Dataset_BC1(Lung_Dataset_BC1):
+    """
+       Specific Dataset class for training dataset for Binary Classifier #1: Normal vs Infected.
     """
 
     def __init__(self):
@@ -152,18 +192,17 @@ class Lung_Train_Dataset(Lung_Dataset):
                                 'non-covid': 2530}
 
         # Path to images in the dataset
-        self.dataset_paths = {'normal': './dataset/train/normal/', \
+        self.dataset_paths = {'normal': './dataset/train/normal', \
                               'covid': './dataset/train/infected/covid', \
                               'non-covid': './dataset/train/infected/non-covid'}
-
-
+    
     def data_augmentation(self):
         """TODO"""
         pass
 
-class Lung_Test_Dataset(Lung_Dataset):
+class Lung_Test_Dataset_BC1(Lung_Dataset_BC1):
     """
-       Specific Dataset class for testing dataset.
+       Specific Dataset class for testing dataset for Binary Classifier #1: Normal vs Infected..
     """
 
     def __init__(self):
@@ -178,13 +217,13 @@ class Lung_Test_Dataset(Lung_Dataset):
                                 'non-covid': 242}
 
         # Path to images in the dataset
-        self.dataset_paths = {'normal': './dataset/test/normal/', \
+        self.dataset_paths = {'normal': './dataset/test/normal', \
                               'covid': './dataset/test/infected/covid', \
                               'non-covid': './dataset/test/infected/non-covid'}
 
-class Lung_Val_Dataset(Lung_Dataset):
+class Lung_Val_Dataset_BC1(Lung_Dataset_BC1):
     """
-       Specific Dataset class for validation dataset.
+       Specific Dataset class for validation dataset for Binary Classifier #1: Normal vs Infected.
     """
 
     def __init__(self):
@@ -199,8 +238,166 @@ class Lung_Val_Dataset(Lung_Dataset):
                                 'non-covid': 8}
 
         # Path to images in the dataset
-        self.dataset_paths = {'normal': './dataset/val/normal/', \
+        self.dataset_paths = {'normal': './dataset/val/normal', \
                               'covid': './dataset/val/infected/covid', \
                               'non-covid': './dataset/val/infected/non-covid'}
 
+class Lung_Dataset_BC2(Lung_Dataset):
+    """
+        Generic Dataset class for Binary Classifier 2. Used as parent class for each subgroup (train, test, val).
+    """
 
+    def __init__(self):
+        super().__init__()
+        self.classes = {0:'covid', 1:'non-covid'}
+        
+    def __getitem__(self, index):
+        """
+        Getitem special method.
+
+        Expects an integer value index, between 0 and len(self) - 1.
+
+        Returns the image and its label as a one hot vector, both
+        in torch tensor format in dataset.
+        """
+
+        # Get item special method
+        first_val = int(list(self.dataset_numbers.values())[0])
+        if index < first_val:
+            class_val = 'covid'
+            label = torch.Tensor([1, 0])
+        else:
+            class_val = 'non-covid'
+            index -= first_val
+            label = torch.Tensor([0, 1])
+        im = self.open_img(class_val, index)
+        im = transforms.functional.to_tensor(np.array(im)).float()
+        return im, label
+    
+class Lung_Train_Dataset_BC2(Lung_Dataset_BC2):
+    """
+       Specific Dataset class for training dataset for Binary Classifier #2: COVID vs Non-COVID.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Dataset consists of training images
+        self.groups = 'train'
+
+        # Number of images for each class in the dataset
+        self.dataset_numbers = {'covid': 1345, \
+                                'non-covid': 2530}
+
+        # Path to images in the dataset
+        self.dataset_paths = {'covid': './dataset/train/infected/covid', \
+                              'non-covid': './dataset/train/infected/non-covid'}
+    
+    def data_augmentation(self):
+        """TODO"""
+        pass
+
+class Lung_Test_Dataset_BC2(Lung_Dataset_BC2):
+    """
+       Specific Dataset class for testing dataset for Binary Classifier #2: COVID vs Non-COVID.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Dataset consists of testing images
+        self.groups = 'test'
+
+        # Number of images for each class in the dataset
+        self.dataset_numbers = {'covid': 138, \
+                                'non-covid': 242}
+
+        # Path to images in the dataset
+        self.dataset_paths = {'covid': './dataset/test/infected/covid', \
+                              'non-covid': './dataset/test/infected/non-covid'}
+
+class Lung_Val_Dataset_BC2(Lung_Dataset_BC2):
+    """
+       Specific Dataset class for validation dataset for Binary Classifier #2: COVID vs Non-COVID.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Dataset consists of validation images
+        self.groups = 'val'
+
+        # Number of images for each class in the dataset
+        self.dataset_numbers = {'covid': 8, \
+                                'non-covid': 8}
+
+        # Path to images in the dataset
+        self.dataset_paths = {'covid': './dataset/val/infected/covid', \
+                              'non-covid': './dataset/val/infected/non-covid'}
+        
+class Lung_Train_Dataset_3CC(Lung_Dataset):
+    """
+       Specific Dataset class for training dataset for ThreeClassesClassifier.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Dataset consists of training images
+        self.groups = 'train'
+
+        # Number of images for each class in the dataset
+        self.dataset_numbers = {'normal': 1341, \
+                                'covid': 1345, \
+                                'non-covid': 2530}
+
+        # Path to images in the dataset
+        self.dataset_paths = {'normal': './dataset/train/normal', \
+                              'covid': './dataset/train/infected/covid', \
+                              'non-covid': './dataset/train/infected/non-covid'}
+
+    def data_augmentation(self):
+        """TODO"""
+        pass
+
+class Lung_Test_Dataset_3CC(Lung_Dataset):
+    """
+       Specific Dataset class for testing dataset for ThreeClassesClassifier.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Dataset consists of testing images
+        self.groups = 'test'
+
+        # Number of images for each class in the dataset
+        self.dataset_numbers = {'normal': 234, \
+                                'covid': 138, \
+                                'non-covid': 242}
+
+        # Path to images in the dataset
+        self.dataset_paths = {'normal': './dataset/test/normal', \
+                              'covid': './dataset/test/infected/covid', \
+                              'non-covid': './dataset/test/infected/non-covid'}
+
+class Lung_Val_Dataset_3CC(Lung_Dataset):
+    """
+       Specific Dataset class for validation dataset for ThreeClassesClassifier.
+    """
+
+    def __init__(self):
+        super().__init__()
+
+        # Dataset consists of validation images
+        self.groups = 'val'
+
+        # Number of images for each class in the dataset
+        self.dataset_numbers = {'normal': 8, \
+                                'covid': 8, \
+                                'non-covid': 8}
+
+        # Path to images in the dataset
+        self.dataset_paths = {'normal': './dataset/val/normal', \
+                              'covid': './dataset/val/infected/covid', \
+                              'non-covid': './dataset/val/infected/non-covid'}

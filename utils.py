@@ -1,6 +1,7 @@
 from dataset import *
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 def plot_class_distribution():
     """
@@ -14,8 +15,8 @@ def plot_class_distribution():
     """
 
     # Plot number of images per class for each dataset
-    train = Lung_Train_Dataset()
-    test = Lung_Test_Dataset()
+    train = Lung_Train_Dataset_3CC()
+    test = Lung_Test_Dataset_3CC()
 
     labels = train.dataset_numbers.keys()
     train_num = train.dataset_numbers.values()
@@ -54,3 +55,4 @@ def plot_class_distribution():
     ax2.set_ylim([0,1])
     ax2.set_title("Percentage per class (Test)")
     plt.show()
+    

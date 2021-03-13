@@ -5,13 +5,74 @@ import torch.nn.functional as F
 import datetime
 import matplotlib.pyplot as plt
 
-class Net(nn.Module):
+class TwoBinaryClassifiers(nn.Module):
     """
     The proposed deep learning model that classifies X-ray images of patients
     and help doctors with the diagnosis of COVID/non-COVID pneuomnia.
+    Combines Normal_VS_Infected model and NonCovid_VS_Covid model.
     """
     def __init__(self):
-        super(Net, self).__init__()
+        super(TwoBinaryClassifiers, self).__init__()
+        self.bc1 = Normal_VS_Infected()
+        self.bc2 = Covid_VS_NonCovid()
+        
+    def forward(self, x):
+        # send the input to BC #1
+        label = int(self.bc1(x).argmax(dim=1))
+        
+        # send the input to BC #2 if the output of BC #1 is predicted as infected
+        if label == 1:
+            label = int(self.bc2(x).argmax(dim=1)) + 1
+        
+        # one-hot encoding to 3-tensor
+        output = torch.zeros((1, 3))
+        output[0][label] = 1
+        
+        return output
+
+class Normal_VS_Infected(nn.Module):
+    """
+    Binary classifier #1 that classifies X-ray images of patients into Normal or
+    Infected classes.
+    """
+    def __init__(self):
+        super(Normal_VS_Infected, self).__init__()
+        # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel, stride of 1.
+        self.conv1 = nn.Conv2d(1, 4, 3, 1)
+        self.fc1 = nn.Linear(87616, 2)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        output = F.log_softmax(x, dim = 1)
+        return output
+    
+class Covid_VS_NonCovid(nn.Module):
+    """
+    Binary classifier #2 that classifies X-ray images of patients into COVID or
+    non-Covid classes.
+    """
+    def __init__(self):
+        super(Covid_VS_NonCovid, self).__init__()
+        # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel, stride of 1.
+        self.conv1 = nn.Conv2d(1, 4, 3, 1)
+        self.fc1 = nn.Linear(87616, 2)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        output = F.log_softmax(x, dim = 1)
+        return output
+    
+class ThreeClassesClassifier(nn.Module):
+    """
+    The baseline deep learning model that classifies X-ray images of patients
+    and help doctors with the diagnosis of COVID/non-COVID pneuomnia.
+    """
+    def __init__(self):
+        super(ThreeClassesClassifier, self).__init__()
         # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel, stride of 1.
         self.conv1 = nn.Conv2d(1, 4, 3, 1)
         self.fc1 = nn.Linear(87616, 3)
@@ -45,8 +106,8 @@ def train(model, device, train_loader, test_loader, optimizer, epoch):
 
     test_loss, test_acc = evaluate(model, device, test_loader)
     print("Test Loss: {:.4f} - Test Accuracy: {:.1f}%".format(test_loss, test_acc))
+    
     return train_loss, train_acc, test_loss, test_acc
-
 
 def evaluate(model, device, data_loader):
     """
@@ -67,20 +128,18 @@ def evaluate(model, device, data_loader):
 
     loss /= len(data_loader)
     acc = 100. * correct / len(data_loader.dataset)
-    model.train()
 
     return loss, acc
 
 def display_performance(model, device, data_loader):
     """
-    Displays subplot containing each image in the dataset, its ground  truth label and predicted labels.
+    Displays subplot containing each image in the dataset, its ground truth label and predicted labels.
     Also displays overall accuracy.
     """
     model.eval()
     fig = plt.figure(figsize=(20,40))
     cols = 4
     rows = 6
-    # loss = 0
     correct = 0
     idx = 1
     classes = {0: 'normal', 1:'covid', 2:'non-covid'}
@@ -89,8 +148,6 @@ def display_performance(model, device, data_loader):
             data, target = data.to(device), target.to(device)
             target = torch.argmax(target, dim=1).long()
             output = model(data)
-            # criterion = nn.CrossEntropyLoss()
-            # loss += criterion(output, target)
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -99,11 +156,9 @@ def display_performance(model, device, data_loader):
             target = target.item()
             pred = pred.item()
             plt.title("Ground truth label: {}\nPredicted label: {}".format(classes[target], classes[pred]))
-            img = data[0].cpu().numpy().reshape(150,150,1)
+            img = data[0].cpu().squeeze(0)
             plt.imshow(img)
 
-
-    # loss /= len(data_loader)
     acc = 100. * correct / len(data_loader.dataset)
     plt.suptitle("Validation set pictures with predicted and ground truth labels\nAverage performance {}/{} = {:.1f}%".format(
         correct,
@@ -112,15 +167,18 @@ def display_performance(model, device, data_loader):
         fontsize=30
     )
     plt.show()
-    model.train()
-
-
-
-def load_model(path):
+                
+def load_model(model_name, model_path):
     """
     Load model from file path
     """
-
-    model = Net()
-    model.load_state_dict(torch.load(path))
+    if model_name == "binary_classifier_1":
+        model = Normal_VS_Infected()
+    elif model_name == "binary_classifier_2":
+        model = Covid_VS_NonCovid()
+    else:
+        model = ThreeClassesClassifier()
+        
+    model.load_state_dict(torch.load(model_path))
     return model
+
