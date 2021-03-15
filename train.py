@@ -11,9 +11,13 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser(description="Train model")
 parser.add_argument("classifier", type=str, help="set type of classifier")
 parser.add_argument("--epochs", type=int, default=10, help="set epochs")
-parser.add_argument("--batch", type=int, default=4, help="set batch size")
-parser.add_argument("--lr", type=float,default=0.001, help="set learning rate")
+parser.add_argument("--batch", type=int, default=16, help="set batch size")
+parser.add_argument("--lr", type=float, default=0.001, help="set learning rate")
+parser.add_argument("--beta1", type=float, default=0.9, help="set the first momentum term")
+parser.add_argument("--beta2", type=float, default=0.999, help="set the second momentum term")
+parser.add_argument("--weight_decay", type=float, default=1e-5, help="set weight decay")
 parser.add_argument("--gamma", type=float, default=0.7, help="set learning rate gamma")
+parser.add_argument("--step_size", type=int, default=1, help="set scheduler step size")
 parser.add_argument("--cuda", type=bool, default=True, help="enable cuda training")
 parser.add_argument("--checkpoint", type=str, default=None, help="checkpoint to load model")
 parser.add_argument("--save_dir", type=str, default=None, help="file path to save the model")
@@ -24,7 +28,11 @@ model_name = args.classifier
 batch_size = args.batch
 epochs = args.epochs
 learning_rate = args.lr
+beta1 = args.beta1
+beta2 = args.beta2
+weight_decay = args.weight_decay
 gamma = args.gamma
+step_size = args.step_size
 cuda = args.cuda
 save_dir = args.save_dir
 checkpoint = args.checkpoint
@@ -52,8 +60,8 @@ else:
 if checkpoint:
     load_model(model_name, checkpoint)
 
-optimizer = optim.Adadelta(model.parameters(), lr=learning_rate)
-scheduler = StepLR(optimizer, step_size=1, gamma=gamma)
+optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(beta1, beta2), weight_decay=weight_decay)
+scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
 # save checkpoint every 5 epochs
 checkpoint_every = 5

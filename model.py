@@ -37,14 +37,29 @@ class Normal_VS_Infected(nn.Module):
     """
     def __init__(self):
         super(Normal_VS_Infected, self).__init__()
-        # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel, stride of 1.
-        self.conv1 = nn.Conv2d(1, 4, 3, 1)
-        self.fc1 = nn.Linear(87616, 2)
+        # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel
+        self.conv1 = nn.Conv2d(1, 8, 3, padding=1)
+        # self.conv2 = nn.Conv2d(8, 16, 3, padding=1)
+        # self.conv3 = nn.Conv2d(16, 32, 3, padding=1)
+        self.pool = nn.MaxPool2d(2,2)
+        self.fc1 = nn.Linear(75*75*8,128)
+        self.classifier = nn.Linear(128, 2)
+
+        #  Weight initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal(m.weight)
+            elif isinstance(m, nn.Linear): # need to intialize m.weight?
+                nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
         x = self.conv1(x)
+        # x = self.conv2(x)
+        # x = self.conv3(x)
+        x = self.pool(x)
         x = torch.flatten(x, 1)
         x = self.fc1(x)
+        x = self.classifier(x)
         output = F.log_softmax(x, dim = 1)
         return output
     
@@ -55,15 +70,23 @@ class Covid_VS_NonCovid(nn.Module):
     """
     def __init__(self):
         super(Covid_VS_NonCovid, self).__init__()
-        # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel, stride of 1.
-        self.conv1 = nn.Conv2d(1, 4, 3, 1)
-        self.fc1 = nn.Linear(87616, 2)
+        # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel
+        self.conv1 = nn.Conv2d(1, 8, 3, padding=1)
+        # self.conv2 = nn.Conv2d(8, 16, 3, padding=1)
+        # self.conv3 = nn.Conv2d(16, 32, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(75 * 75 * 32, 128)
+        self.classifier = nn.Linear(128, 2)
 
     def forward(self, x):
         x = self.conv1(x)
+        # x = self.conv2(x)
+        # x = self.conv3(x)
+        x = self.pool(x)
         x = torch.flatten(x, 1)
         x = self.fc1(x)
-        output = F.log_softmax(x, dim = 1)
+        x = self.classifier(x)
+        output = F.log_softmax(x, dim=1)
         return output
     
 class ThreeClassesClassifier(nn.Module):
