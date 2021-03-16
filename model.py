@@ -75,7 +75,7 @@ class Covid_VS_NonCovid(nn.Module):
         # self.conv2 = nn.Conv2d(8, 16, 3, padding=1)
         # self.conv3 = nn.Conv2d(16, 32, 3, padding=1)
         self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(75 * 75 * 32, 128)
+        self.fc1 = nn.Linear(75 * 75 * 8, 128)
         self.classifier = nn.Linear(128, 2)
 
     def forward(self, x):
@@ -123,22 +123,24 @@ def train(model, device, train_loader, test_loader, optimizer, epoch):
         loss.backward()
         optimizer.step()
 
-    train_loss, train_acc = evaluate(model, device, train_loader)
-    print('Train Epoch: {} @ {} \nTrain Loss: {:.4f} - Train Accuracy: {:.1f}%'.format(
-        epoch, datetime.datetime.now().time(), train_loss, train_acc))
+    train_loss, train_acc, train_recall = evaluate(model, device, train_loader)
+    print('Train Epoch: {} @ {} \nTrain Loss: {:.4f} - Train Accuracy: {:.1f}% - Train Recall: {:.1f}%'.format(
+        epoch, datetime.datetime.now().time(), train_loss, train_acc, train_recall))
 
-    test_loss, test_acc = evaluate(model, device, test_loader)
-    print("Test Loss: {:.4f} - Test Accuracy: {:.1f}%".format(test_loss, test_acc))
+    test_loss, test_acc, test_recall = evaluate(model, device, test_loader)
+    print("Test Loss: {:.4f} - Test Accuracy: {:.1f}% - Test Recall: {:.1f}%".format(test_loss, test_acc, test_recall))
     
-    return train_loss, train_acc, test_loss, test_acc
+    return train_loss, train_acc, train_recall, test_loss, test_acc, test_recall
 
 def evaluate(model, device, data_loader):
     """
-    Evaluates the model and returns loss and accuracy
+    Evaluates the model and returns loss, accuracy and recall for the positive class ([0,1])
     """
     model.eval()
     loss = 0
     correct = 0
+    correct_true = 0
+    target_true = 0
     with torch.no_grad():
         for data, target in data_loader:
             data, target = data.to(device), target.to(device)
@@ -149,10 +151,13 @@ def evaluate(model, device, data_loader):
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
+            correct_true += torch.sum(pred.squeeze(1) * target).item()
+            target_true += torch.sum(target == 1).item()
+
     loss /= len(data_loader)
     acc = 100. * correct / len(data_loader.dataset)
-
-    return loss, acc
+    recall = 100. * correct_true / target_true
+    return loss, acc, recall
 
 def display_performance(model, device, data_loader):
     """
@@ -183,7 +188,7 @@ def display_performance(model, device, data_loader):
             plt.imshow(img)
 
     acc = 100. * correct / len(data_loader.dataset)
-    plt.suptitle("Validation set pictures with predicted and ground truth labels\nAverage performance {}/{} = {:.1f}%".format(
+    plt.suptitle("Validation set pictures with predicted and ground truth labels\nAverage accuracy {}/{} = {:.1f}%".format(
         correct,
         len(data_loader.dataset),
         acc),

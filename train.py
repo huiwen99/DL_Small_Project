@@ -69,15 +69,19 @@ checkpoint_every = 5
 # train the model
 train_losses = []
 train_accs = []
+train_recalls = []
 test_losses = []
 test_accs = []
+test_recalls = []
 print("Training...")
 for epoch in range(1, epochs + 1):
-    train_loss, train_acc, test_loss, test_acc = train(model, device, ld_train, ld_test, optimizer, epoch)
+    train_loss, train_acc, train_recall, test_loss, test_acc, test_recall = train(model, device, ld_train, ld_test, optimizer, epoch)
     train_losses.append(train_loss)
     train_accs.append(train_acc)
+    train_recalls.append(train_recall)
     test_losses.append(test_loss)
     test_accs.append(test_acc)
+    test_recalls.append(test_recall)
 
     scheduler.step()
 
@@ -96,6 +100,12 @@ plt.show()
 plt.plot(train_accs, label="Train")
 plt.plot(test_accs, label="Test")
 plt.title("Accuracy curves")
+plt.legend()
+plt.show()
+
+plt.plot(train_recalls, label="Train")
+plt.plot(test_recalls, label="Test")
+plt.title("Recall curves")
 plt.legend()
 plt.show()
 

@@ -19,20 +19,20 @@ class Lung_Dataset(Dataset):
         self.img_size = (150,150)
 
         # 3 classes: normal, infected (covid) and infected (non-covid)
-        self.classes = {0: 'normal', 1:'covid', 2:'non-covid'}
+        self.classes = {0: 'normal', 1:'non-covid', 2:'covid'}
 
         # Dataset should belong to only one group: train, test or val
         self.groups = None
 
         # Number of images for each class in the dataset
         self.dataset_numbers = {'normal': 0,\
-                                'covid': 0,\
-                                'non-covid': 0}
+                                'non-covid': 0,\
+                                'covid': 0}
 
         # Path to images in the dataset
         self.dataset_paths = {'normal': None,\
-                              'covid': None,\
-                              'non-covid': None}
+                              'non-covid': None,\
+                              'covid': None}
 
     def describe(self):
         """
@@ -118,11 +118,11 @@ class Lung_Dataset(Dataset):
             class_val = 'normal'
             label = torch.Tensor([1, 0, 0])
         elif index < second_val:
-            class_val = 'covid'
+            class_val = 'non-covid'
             index -= first_val
             label = torch.Tensor([0, 1, 0])
         else:
-            class_val = 'non-covid'
+            class_val = 'covid'
             index -= second_val
             label = torch.Tensor([0, 0, 1])
         im = self.open_img(class_val, index)
@@ -164,11 +164,11 @@ class Lung_Dataset_BC1(Lung_Dataset):
             class_val = 'normal'
             label = torch.Tensor([1, 0])
         elif index < second_val:
-            class_val = 'covid'
+            class_val = 'non-covid'
             index -= first_val
             label = torch.Tensor([0, 1])
         else:
-            class_val = 'non-covid'
+            class_val = 'covid'
             index -= second_val
             label = torch.Tensor([0, 1])
         im = self.open_img(class_val, index)
@@ -196,9 +196,6 @@ class Lung_Train_Dataset_BC1(Lung_Dataset_BC1):
                               'covid': './dataset/train/infected/covid', \
                               'non-covid': './dataset/train/infected/non-covid'}
     
-    def data_augmentation(self):
-        """TODO"""
-        pass
 
 class Lung_Test_Dataset_BC1(Lung_Dataset_BC1):
     """
@@ -249,7 +246,7 @@ class Lung_Dataset_BC2(Lung_Dataset):
 
     def __init__(self):
         super().__init__()
-        self.classes = {0:'covid', 1:'non-covid'}
+        self.classes = {0:'non-covid', 1:'covid'}
         
     def __getitem__(self, index):
         """
@@ -264,10 +261,10 @@ class Lung_Dataset_BC2(Lung_Dataset):
         # Get item special method
         first_val = int(list(self.dataset_numbers.values())[0])
         if index < first_val:
-            class_val = 'covid'
+            class_val = 'non-covid'
             label = torch.Tensor([1, 0])
         else:
-            class_val = 'non-covid'
+            class_val = 'covid'
             index -= first_val
             label = torch.Tensor([0, 1])
         im = self.open_img(class_val, index)
@@ -286,16 +283,13 @@ class Lung_Train_Dataset_BC2(Lung_Dataset_BC2):
         self.groups = 'train'
 
         # Number of images for each class in the dataset
-        self.dataset_numbers = {'covid': 1345, \
-                                'non-covid': 2530}
+        self.dataset_numbers = {'non-covid': 2530, \
+                                'covid': 1345}
 
         # Path to images in the dataset
-        self.dataset_paths = {'covid': './dataset/train/infected/covid', \
-                              'non-covid': './dataset/train/infected/non-covid'}
-    
-    def data_augmentation(self):
-        """TODO"""
-        pass
+        self.dataset_paths = {'non-covid': './dataset/train/infected/non-covid', \
+                              'covid': './dataset/train/infected/covid'}
+
 
 class Lung_Test_Dataset_BC2(Lung_Dataset_BC2):
     """
@@ -309,12 +303,12 @@ class Lung_Test_Dataset_BC2(Lung_Dataset_BC2):
         self.groups = 'test'
 
         # Number of images for each class in the dataset
-        self.dataset_numbers = {'covid': 138, \
-                                'non-covid': 242}
+        self.dataset_numbers = {'non-covid': 242, \
+                                'covid': 138}
 
         # Path to images in the dataset
-        self.dataset_paths = {'covid': './dataset/test/infected/covid', \
-                              'non-covid': './dataset/test/infected/non-covid'}
+        self.dataset_paths = {'non-covid': './dataset/test/infected/non-covid', \
+                              'covid': './dataset/test/infected/covid'}
 
 class Lung_Val_Dataset_BC2(Lung_Dataset_BC2):
     """
@@ -328,12 +322,12 @@ class Lung_Val_Dataset_BC2(Lung_Dataset_BC2):
         self.groups = 'val'
 
         # Number of images for each class in the dataset
-        self.dataset_numbers = {'covid': 8, \
-                                'non-covid': 8}
+        self.dataset_numbers = {'non-covid': 8, \
+                                'covid': 8}
 
         # Path to images in the dataset
-        self.dataset_paths = {'covid': './dataset/val/infected/covid', \
-                              'non-covid': './dataset/val/infected/non-covid'}
+        self.dataset_paths = {'non-covid': './dataset/val/infected/non-covid', \
+                              'covid': './dataset/val/infected/covid'}
         
 class Lung_Train_Dataset_3CC(Lung_Dataset):
     """
@@ -348,17 +342,14 @@ class Lung_Train_Dataset_3CC(Lung_Dataset):
 
         # Number of images for each class in the dataset
         self.dataset_numbers = {'normal': 1341, \
-                                'covid': 1345, \
-                                'non-covid': 2530}
+                                'non-covid': 2530, \
+                                'covid': 1345}
 
         # Path to images in the dataset
         self.dataset_paths = {'normal': './dataset/train/normal', \
-                              'covid': './dataset/train/infected/covid', \
-                              'non-covid': './dataset/train/infected/non-covid'}
+                              'non-covid': './dataset/train/infected/non-covid', \
+                              'covid': './dataset/train/infected/covid'}
 
-    def data_augmentation(self):
-        """TODO"""
-        pass
 
 class Lung_Test_Dataset_3CC(Lung_Dataset):
     """
@@ -373,13 +364,13 @@ class Lung_Test_Dataset_3CC(Lung_Dataset):
 
         # Number of images for each class in the dataset
         self.dataset_numbers = {'normal': 234, \
-                                'covid': 138, \
-                                'non-covid': 242}
+                                'non-covid': 242, \
+                                'covid': 138}
 
         # Path to images in the dataset
         self.dataset_paths = {'normal': './dataset/test/normal', \
-                              'covid': './dataset/test/infected/covid', \
-                              'non-covid': './dataset/test/infected/non-covid'}
+                              'non-covid': './dataset/test/infected/non-covid', \
+                              'covid': './dataset/test/infected/covid'}
 
 class Lung_Val_Dataset_3CC(Lung_Dataset):
     """
@@ -394,10 +385,10 @@ class Lung_Val_Dataset_3CC(Lung_Dataset):
 
         # Number of images for each class in the dataset
         self.dataset_numbers = {'normal': 8, \
-                                'covid': 8, \
-                                'non-covid': 8}
+                                'non-covid': 8, \
+                                'covid': 8}
 
         # Path to images in the dataset
         self.dataset_paths = {'normal': './dataset/val/normal', \
-                              'covid': './dataset/val/infected/covid', \
-                              'non-covid': './dataset/val/infected/non-covid'}
+                              'non-covid': './dataset/val/infected/non-covid', \
+                              'covid': './dataset/val/infected/covid'}
