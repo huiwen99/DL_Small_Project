@@ -2,6 +2,7 @@ import argparse
 from model import *
 from dataloader import *
 from dataset import *
+from utils import plot_curves
 import torch
 import torch.optim
 from torch.optim.lr_scheduler import StepLR
@@ -57,17 +58,17 @@ elif model_name == "binary_classifier_2":
     train_dset = Lung_Train_Dataset_BC2()
     ld_train = load_train(train_dset, batch_size)
     ld_test = load_test(Lung_Test_Dataset_BC2(), batch_size)
-    model = Covid_VS_NonCovid().to(device)
+    model = NonCovid_VS_Covid().to(device)
 
     # weights for loss function
     noncovid_class = train_dset.dataset_numbers['non-covid']
     covid_class = train_dset.dataset_numbers['covid']
     weights = torch.tensor([1./noncovid_class, 1./covid_class]).to(device)
 
-else:
-    ld_train = load_train(Lung_Train_Dataset_3CC(), batch_size)
-    ld_test = load_test(Lung_Test_Dataset_3CC(), batch_size)
-    model = ThreeClassesClassifier().to(device)
+# else:
+#     ld_train = load_train(Lung_Train_Dataset_3CC(), batch_size)
+#     ld_test = load_test(Lung_Test_Dataset_3CC(), batch_size)
+#     model = ThreeClassesClassifier().to(device)
 
 # initialize model and optimizer
 if checkpoint:
@@ -75,9 +76,6 @@ if checkpoint:
 
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(beta1, beta2), weight_decay=weight_decay)
 scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
-
-# save checkpoint every 5 epochs
-checkpoint_every = 5
 
 # train the model
 train_losses = []
@@ -97,32 +95,16 @@ for epoch in range(1, epochs + 1):
     test_recalls.append(test_recall)
 
     scheduler.step()
-
-    if epoch%checkpoint_every==0:
-        # save model if applicable
-        if save_dir:
-            torch.save(model.state_dict(), save_dir)
-
-# plot learning curves
-plt.plot(train_losses, label="Train")
-plt.plot(test_losses, label="Test")
-plt.title("Loss curves")
-plt.legend()
-plt.show()
-
-plt.plot(train_accs, label="Train")
-plt.plot(test_accs, label="Test")
-plt.title("Accuracy curves")
-plt.legend()
-plt.show()
-
-plt.plot(train_recalls, label="Train")
-plt.plot(test_recalls, label="Test")
-plt.title("Recall curves")
-plt.legend()
-plt.show()
-
-# save model if applicable
-if save_dir:
-    torch.save(model.state_dict(), save_dir)
     
+    # save best checkpoint based on test loss
+    if epoch == 1:
+        best_test_loss = test_loss
+    
+    if save_dir:
+        if test_loss < best_test_loss:
+            torch.save(model.state_dict(), save_dir)   
+            
+# plot learning curves
+plot_curves(train_losses, test_losses, "Loss curves")
+plot_curves(train_accs, test_accs, "Accuracy curves")
+plot_curves(train_recalls, test_recalls, "Recall curves")

@@ -4,6 +4,7 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
+import random
 
 class Lung_Dataset(Dataset):
     """
@@ -74,7 +75,22 @@ class Lung_Dataset(Dataset):
         # Open file as before
         path_to_file = '{}/{}.jpg'.format(self.dataset_paths['{}'.format(class_val)], index_val)
         with open(path_to_file, 'rb') as f:
-            im = np.asarray(Image.open(f)) / 255
+            im = Image.open(f)
+            im = im.resize((150,150))
+            
+            # only apply data augmentation to training samples
+            if self.groups == 'train':
+                transform = transforms.Compose([
+                    transforms.ColorJitter(
+                        brightness=0.5*random.random(),
+                        contrast=0.5*random.random(),
+                        saturation=0.5*random.random(),
+                        hue=0.5*random.random()
+                    ), transforms.RandomRotation(5, fill=(0,))
+                ])
+                im = transform(im)
+            
+            im = np.asarray(im) / 255
         f.close()
         return im
 
@@ -246,7 +262,7 @@ class Lung_Dataset_BC2(Lung_Dataset):
 
     def __init__(self):
         super().__init__()
-        self.classes = {0:'non-covid', 1:'covid'}
+        self.classes = {0: 'non-covid', 1: 'covid'}
         
     def __getitem__(self, index):
         """

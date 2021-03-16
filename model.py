@@ -14,7 +14,7 @@ class TwoBinaryClassifiers(nn.Module):
     def __init__(self):
         super(TwoBinaryClassifiers, self).__init__()
         self.bc1 = Normal_VS_Infected()
-        self.bc2 = Covid_VS_NonCovid()
+        self.bc2 = NonCovid_VS_Covid()
         
     def forward(self, x):
         # send the input to BC #1
@@ -48,8 +48,8 @@ class Normal_VS_Infected(nn.Module):
         #  Weight initialization
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal(m.weight)
-            elif isinstance(m, nn.Linear): # need to intialize m.weight?
+                nn.init.kaiming_normal_(m.weight)
+            elif isinstance(m, nn.Linear):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
@@ -63,13 +63,13 @@ class Normal_VS_Infected(nn.Module):
         output = F.log_softmax(x, dim = 1)
         return output
     
-class Covid_VS_NonCovid(nn.Module):
+class NonCovid_VS_Covid(nn.Module):
     """
     Binary classifier #2 that classifies X-ray images of patients into COVID or
     non-Covid classes.
     """
     def __init__(self):
-        super(Covid_VS_NonCovid, self).__init__()
+        super(NonCovid_VS_Covid, self).__init__()
         # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel
         self.conv1 = nn.Conv2d(1, 8, 3, padding=1)
         # self.conv2 = nn.Conv2d(8, 16, 3, padding=1)
@@ -114,6 +114,7 @@ def train(model, device, train_loader, test_loader, optimizer, epoch, weights):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
+        
         # convert one-hot to numerical categories
         target = torch.argmax(target, dim=1).long()
         optimizer.zero_grad()
@@ -173,7 +174,6 @@ def display_performance(model, device, data_loader):
     covid_correct_true = 0
     covid_true = 0
 
-
     idx = 1
     classes = {0: 'normal', 1:'non-covid', 2:'covid'}
     with torch.no_grad():
@@ -219,7 +219,7 @@ def load_model(model_name, model_path):
     if model_name == "binary_classifier_1":
         model = Normal_VS_Infected()
     elif model_name == "binary_classifier_2":
-        model = Covid_VS_NonCovid()
+        model = NonCovid_VS_Covid()
     else:
         model = ThreeClassesClassifier()
         

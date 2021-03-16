@@ -1,5 +1,4 @@
 from torch.utils.data import DataLoader
-# from dataset import *
 
 def load_train(ld_train, batch_size):
     """
