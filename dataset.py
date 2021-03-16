@@ -188,13 +188,13 @@ class Lung_Train_Dataset_BC1(Lung_Dataset_BC1):
 
         # Number of images for each class in the dataset
         self.dataset_numbers = {'normal': 1341, \
-                                'covid': 1345, \
-                                'non-covid': 2530}
+                                'non-covid': 2530, \
+                                'covid': 1345}
 
         # Path to images in the dataset
         self.dataset_paths = {'normal': './dataset/train/normal', \
-                              'covid': './dataset/train/infected/covid', \
-                              'non-covid': './dataset/train/infected/non-covid'}
+                              'non-covid': './dataset/train/infected/non-covid', \
+                              'covid': './dataset/train/infected/covid'}
     
 
 class Lung_Test_Dataset_BC1(Lung_Dataset_BC1):
@@ -210,13 +210,13 @@ class Lung_Test_Dataset_BC1(Lung_Dataset_BC1):
 
         # Number of images for each class in the dataset
         self.dataset_numbers = {'normal': 234, \
-                                'covid': 138, \
-                                'non-covid': 242}
+                                'non-covid': 242, \
+                                'covid': 138}
 
         # Path to images in the dataset
         self.dataset_paths = {'normal': './dataset/test/normal', \
-                              'covid': './dataset/test/infected/covid', \
-                              'non-covid': './dataset/test/infected/non-covid'}
+                              'non-covid': './dataset/test/infected/non-covid', \
+                              'covid': './dataset/test/infected/covid'}
 
 class Lung_Val_Dataset_BC1(Lung_Dataset_BC1):
     """
@@ -231,13 +231,13 @@ class Lung_Val_Dataset_BC1(Lung_Dataset_BC1):
 
         # Number of images for each class in the dataset
         self.dataset_numbers = {'normal': 8, \
-                                'covid': 8, \
-                                'non-covid': 8}
+                                'non-covid': 8, \
+                                'covid': 8}
 
         # Path to images in the dataset
         self.dataset_paths = {'normal': './dataset/val/normal', \
-                              'covid': './dataset/val/infected/covid', \
-                              'non-covid': './dataset/val/infected/non-covid'}
+                              'non-covid': './dataset/val/infected/non-covid', \
+                              'covid': './dataset/val/infected/covid'}
 
 class Lung_Dataset_BC2(Lung_Dataset):
     """

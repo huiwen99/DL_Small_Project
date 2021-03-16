@@ -43,14 +43,27 @@ device = torch.device("cuda" if use_cuda else "cpu")
 
 # load dataset and define model
 if model_name == "binary_classifier_1":
-    ld_train = load_train(Lung_Train_Dataset_BC1(), batch_size)
+    train_dset = Lung_Train_Dataset_BC1()
+    ld_train = load_train(train_dset, batch_size)
     ld_test = load_test(Lung_Test_Dataset_BC1(), batch_size)
     model = Normal_VS_Infected().to(device)
+
+    # weights for loss function
+    normal_class = train_dset.dataset_numbers['normal']
+    infected_class = train_dset.dataset_numbers['non-covid']+train_dset.dataset_numbers['covid']
+    weights = torch.tensor([1./normal_class, 1./infected_class]).to(device)
     
 elif model_name == "binary_classifier_2":
-    ld_train = load_train(Lung_Train_Dataset_BC2(), batch_size)
+    train_dset = Lung_Train_Dataset_BC2()
+    ld_train = load_train(train_dset, batch_size)
     ld_test = load_test(Lung_Test_Dataset_BC2(), batch_size)
     model = Covid_VS_NonCovid().to(device)
+
+    # weights for loss function
+    noncovid_class = train_dset.dataset_numbers['non-covid']
+    covid_class = train_dset.dataset_numbers['covid']
+    weights = torch.tensor([1./noncovid_class, 1./covid_class]).to(device)
+
 else:
     ld_train = load_train(Lung_Train_Dataset_3CC(), batch_size)
     ld_test = load_test(Lung_Test_Dataset_3CC(), batch_size)
@@ -75,7 +88,7 @@ test_accs = []
 test_recalls = []
 print("Training...")
 for epoch in range(1, epochs + 1):
-    train_loss, train_acc, train_recall, test_loss, test_acc, test_recall = train(model, device, ld_train, ld_test, optimizer, epoch)
+    train_loss, train_acc, train_recall, test_loss, test_acc, test_recall = train(model, device, ld_train, ld_test, optimizer, epoch, weights)
     train_losses.append(train_loss)
     train_accs.append(train_acc)
     train_recalls.append(train_recall)

@@ -107,7 +107,7 @@ class ThreeClassesClassifier(nn.Module):
         output = F.log_softmax(x, dim = 1)
         return output
 
-def train(model, device, train_loader, test_loader, optimizer, epoch):
+def train(model, device, train_loader, test_loader, optimizer, epoch, weights):
     """
     Trains the model on training data
     """
@@ -118,7 +118,7 @@ def train(model, device, train_loader, test_loader, optimizer, epoch):
         target = torch.argmax(target, dim=1).long()
         optimizer.zero_grad()
         output = model(data)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss(weight=weights)
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
@@ -169,8 +169,13 @@ def display_performance(model, device, data_loader):
     cols = 4
     rows = 6
     correct = 0
+
+    covid_correct_true = 0
+    covid_true = 0
+
+
     idx = 1
-    classes = {0: 'normal', 1:'covid', 2:'non-covid'}
+    classes = {0: 'normal', 1:'non-covid', 2:'covid'}
     with torch.no_grad():
         for data, target in data_loader:
             data, target = data.to(device), target.to(device)
@@ -178,6 +183,15 @@ def display_performance(model, device, data_loader):
             output = model(data)
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
+
+            # recall for covid
+            is_covid = (target == 2).item()
+            if is_covid:
+                covid_true += 1
+                pred_covid = (pred == 2).item()
+                if pred_covid:
+                    covid_correct_true += 1
+
 
             fig.add_subplot(rows, cols, idx)
             idx+=1
@@ -188,10 +202,12 @@ def display_performance(model, device, data_loader):
             plt.imshow(img)
 
     acc = 100. * correct / len(data_loader.dataset)
-    plt.suptitle("Validation set pictures with predicted and ground truth labels\nAverage accuracy {}/{} = {:.1f}%".format(
+    covid_recall = 100. * covid_correct_true / covid_true
+    plt.suptitle("Validation set pictures with predicted and ground truth labels\nAverage accuracy {}/{} = {:.1f}%\nRecall for COVID class = {:.1f}%".format(
         correct,
         len(data_loader.dataset),
-        acc),
+        acc,
+        covid_recall),
         fontsize=30
     )
     plt.show()
