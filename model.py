@@ -39,10 +39,30 @@ class Normal_VS_Infected(nn.Module):
         super(Normal_VS_Infected, self).__init__()
         # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel
         self.conv1 = nn.Conv2d(1, 8, 3, padding=1)
-        # self.conv2 = nn.Conv2d(8, 16, 3, padding=1)
-        # self.conv3 = nn.Conv2d(16, 32, 3, padding=1)
-        self.pool = nn.MaxPool2d(2,2)
-        self.fc1 = nn.Linear(75*75*8,128)
+        self.relu1 = nn.ReLU()
+        self.conv2 = nn.Conv2d(8, 8, 3, padding=1)
+        self.relu2 = nn.ReLU()
+        self.pool1 = nn.MaxPool2d(2,2)
+
+        self.conv3 = nn.Conv2d(8, 16, 3, padding=1)
+        self.relu3 = nn.ReLU()
+        self.conv4 = nn.Conv2d(16, 16, 3, padding=1)
+        self.relu4 = nn.ReLU()
+        self.pool2 = nn.MaxPool2d(3, 3)
+
+        self.conv5 = nn.Conv2d(16, 32, 3, padding=1)
+        self.relu5 = nn.ReLU()
+        self.conv6 = nn.Conv2d(32, 32, 3, padding=1)
+        self.relu6 = nn.ReLU()
+        self.pool3 = nn.MaxPool2d(5, 5)
+
+        self.conv7 = nn.Conv2d(32, 64, 3, padding=1)
+        self.relu7 = nn.ReLU()
+        self.conv8 = nn.Conv2d(64, 64, 3, padding=1)
+        self.relu8 = nn.ReLU()
+        self.pool4 = nn.MaxPool2d(5, 5)
+
+        self.fc1 = nn.Linear(1*1*64,128)
         self.classifier = nn.Linear(128, 2)
 
         #  Weight initialization
@@ -54,9 +74,29 @@ class Normal_VS_Infected(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        # x = self.conv2(x)
-        # x = self.conv3(x)
-        x = self.pool(x)
+        x = self.relu1(x)
+        x = self.conv2(x)
+        x = self.relu2(x)
+        x = self.pool1(x)
+
+        x = self.conv3(x)
+        x = self.relu3(x)
+        x = self.conv4(x)
+        x = self.relu4(x)
+        x = self.pool2(x)
+
+        x = self.conv5(x)
+        x = self.relu5(x)
+        x = self.conv6(x)
+        x = self.relu6(x)
+        x = self.pool3(x)
+
+        x = self.conv7(x)
+        x = self.relu7(x)
+        x = self.conv8(x)
+        x = self.relu8(x)
+        x = self.pool4(x)
+
         x = torch.flatten(x, 1)
         x = self.fc1(x)
         x = self.classifier(x)
@@ -72,17 +112,57 @@ class NonCovid_VS_Covid(nn.Module):
         super(NonCovid_VS_Covid, self).__init__()
         # Conv2D: 1 input channel, 8 output channels, 3 by 3 kernel
         self.conv1 = nn.Conv2d(1, 8, 3, padding=1)
-        self.conv2 = nn.Conv2d(8, 16, 3, padding=1)
-        self.conv3 = nn.Conv2d(16, 32, 3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.fc1 = nn.Linear(75 * 75 * 32, 128)
+        self.relu1 = nn.ReLU()
+        self.conv2 = nn.Conv2d(8, 8, 3, padding=1)
+        self.relu2 = nn.ReLU()
+        self.pool1 = nn.MaxPool2d(2, 2)
+
+        self.conv3 = nn.Conv2d(8, 16, 3, padding=1)
+        self.relu3 = nn.ReLU()
+        self.conv4 = nn.Conv2d(16, 16, 3, padding=1)
+        self.relu4 = nn.ReLU()
+        self.pool2 = nn.MaxPool2d(3, 3)
+        #
+        # self.conv5 = nn.Conv2d(16, 32, 3, padding=1)
+        # self.relu5 = nn.ReLU()
+        # self.conv6 = nn.Conv2d(32, 32, 3, padding=1)
+        # self.relu6 = nn.ReLU()
+        # self.pool3 = nn.MaxPool2d(5, 5)
+        #
+        # self.conv7 = nn.Conv2d(32, 64, 3, padding=1)
+        # self.relu7 = nn.ReLU()
+        # self.conv8 = nn.Conv2d(64, 64, 3, padding=1)
+        # self.relu8 = nn.ReLU()
+        # self.pool4 = nn.MaxPool2d(5, 5)
+
+        self.fc1 = nn.Linear(25 * 25 * 16, 128)
         self.classifier = nn.Linear(128, 2)
 
     def forward(self, x):
         x = self.conv1(x)
+        x = self.relu1(x)
         x = self.conv2(x)
+        x = self.relu2(x)
+        x = self.pool1(x)
+
         x = self.conv3(x)
-        x = self.pool(x)
+        x = self.relu3(x)
+        x = self.conv4(x)
+        x = self.relu4(x)
+        x = self.pool2(x)
+        #
+        # x = self.conv5(x)
+        # x = self.relu5(x)
+        # x = self.conv6(x)
+        # x = self.relu6(x)
+        # x = self.pool3(x)
+        #
+        # x = self.conv7(x)
+        # x = self.relu7(x)
+        # x = self.conv8(x)
+        # x = self.relu8(x)
+        # x = self.pool4(x)
+
         x = torch.flatten(x, 1)
         x = self.fc1(x)
         x = self.classifier(x)
@@ -159,9 +239,20 @@ def evaluate(model, device, data_loader):
 
     loss /= len(data_loader)
     acc = 100. * correct / len(data_loader.dataset)
-    recall = 100. * correct_true / target_true
-    precision = 100. * correct_true / predicted_true
-    f1 = 2 * precision * recall / (precision + recall)
+
+    if target_true==0:
+        recall = 0
+    else:
+        recall = 100. * correct_true / target_true
+
+    if predicted_true==0:
+        precision = 0
+    else:
+        precision = 100. * correct_true / predicted_true
+    if precision==0 and recall==0:
+        f1 = 0
+    else:
+        f1 = 2 * precision * recall / (precision + recall)
     return loss, acc, f1
 
 def display_performance(model, device, data_loader):
@@ -209,9 +300,19 @@ def display_performance(model, device, data_loader):
             plt.imshow(img)
 
     acc = 100. * correct / len(data_loader.dataset)
-    covid_recall = 100. * covid_correct_true / covid_true
-    covid_precision = 100. *covid_correct_true / covid_predicted_true
-    covid_f1 = 2 * covid_precision * covid_recall / (covid_precision + covid_recall)
+
+    if covid_true == 0:
+        covid_recall = 0
+    else:
+        covid_recall = 100. * covid_correct_true / covid_true
+    if covid_predicted_true == 0:
+        covid_precision = 0
+    else:
+        covid_precision = 100. *covid_correct_true / covid_predicted_true
+    if covid_recall ==0 and covid_recall==0:
+        covid_f1 = 0
+    else:
+        covid_f1 = 2 * covid_precision * covid_recall / (covid_precision + covid_recall)
     plt.suptitle("Validation set pictures with predicted and ground truth labels\nAverage accuracy {}/{} = {:.1f}%\nF1 score for COVID class = {:.1f}%".format(
         correct,
         len(data_loader.dataset),
