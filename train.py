@@ -80,31 +80,31 @@ scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
 # train the model
 train_losses = []
 train_accs = []
-train_recalls = []
+train_f1s = []
 test_losses = []
 test_accs = []
-test_recalls = []
+test_f1s = []
 print("Training...")
 for epoch in range(1, epochs + 1):
-    train_loss, train_acc, train_recall, test_loss, test_acc, test_recall = train(model, device, ld_train, ld_test, optimizer, epoch, weights)
+    train_loss, train_acc, train_f1, test_loss, test_acc, test_f1 = train(model, device, ld_train, ld_test, optimizer, epoch, weights)
     train_losses.append(train_loss)
     train_accs.append(train_acc)
-    train_recalls.append(train_recall)
+    train_f1s.append(train_f1)
     test_losses.append(test_loss)
     test_accs.append(test_acc)
-    test_recalls.append(test_recall)
+    test_f1s.append(test_f1)
 
     scheduler.step()
     
-    # save best checkpoint based on test loss
+    # save best checkpoint based on test F1 score
     if epoch == 1:
-        best_test_loss = test_loss
+        best_test_score = test_f1
     
     if save_dir:
-        if test_loss < best_test_loss:
+        if test_f1 < best_test_score:
             torch.save(model.state_dict(), save_dir)   
             
 # plot learning curves
 plot_curves(train_losses, test_losses, "Loss curves")
 plot_curves(train_accs, test_accs, "Accuracy curves")
-plot_curves(train_recalls, test_recalls, "Recall curves")
+plot_curves(train_f1s, test_f1s, "F1 curves")
