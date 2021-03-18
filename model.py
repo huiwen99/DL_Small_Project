@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import datetime
 import matplotlib.pyplot as plt
+import numpy as np
 
 class TwoBinaryClassifiers(nn.Module):
     """
@@ -56,13 +57,8 @@ class Normal_VS_Infected(nn.Module):
         self.relu6 = nn.ReLU()
         self.pool3 = nn.MaxPool2d(5, 5)
 
-        self.conv7 = nn.Conv2d(32, 64, 3, padding=1)
-        self.relu7 = nn.ReLU()
-        self.conv8 = nn.Conv2d(64, 64, 3, padding=1)
-        self.relu8 = nn.ReLU()
-        self.pool4 = nn.MaxPool2d(5, 5)
 
-        self.fc1 = nn.Linear(1*1*64,128)
+        self.fc1 = nn.Linear(5*5*32,128)
         self.classifier = nn.Linear(128, 2)
 
         #  Weight initialization
@@ -91,12 +87,6 @@ class Normal_VS_Infected(nn.Module):
         x = self.relu6(x)
         x = self.pool3(x)
 
-        x = self.conv7(x)
-        x = self.relu7(x)
-        x = self.conv8(x)
-        x = self.relu8(x)
-        x = self.pool4(x)
-
         x = torch.flatten(x, 1)
         x = self.fc1(x)
         x = self.classifier(x)
@@ -117,25 +107,7 @@ class NonCovid_VS_Covid(nn.Module):
         self.relu2 = nn.ReLU()
         self.pool1 = nn.MaxPool2d(2, 2)
 
-        self.conv3 = nn.Conv2d(8, 16, 3, padding=1)
-        self.relu3 = nn.ReLU()
-        self.conv4 = nn.Conv2d(16, 16, 3, padding=1)
-        self.relu4 = nn.ReLU()
-        self.pool2 = nn.MaxPool2d(3, 3)
-        #
-        # self.conv5 = nn.Conv2d(16, 32, 3, padding=1)
-        # self.relu5 = nn.ReLU()
-        # self.conv6 = nn.Conv2d(32, 32, 3, padding=1)
-        # self.relu6 = nn.ReLU()
-        # self.pool3 = nn.MaxPool2d(5, 5)
-        #
-        # self.conv7 = nn.Conv2d(32, 64, 3, padding=1)
-        # self.relu7 = nn.ReLU()
-        # self.conv8 = nn.Conv2d(64, 64, 3, padding=1)
-        # self.relu8 = nn.ReLU()
-        # self.pool4 = nn.MaxPool2d(5, 5)
-
-        self.fc1 = nn.Linear(25 * 25 * 16, 128)
+        self.fc1 = nn.Linear(75 * 75 * 8, 128)
         self.classifier = nn.Linear(128, 2)
 
     def forward(self, x):
@@ -144,24 +116,6 @@ class NonCovid_VS_Covid(nn.Module):
         x = self.conv2(x)
         x = self.relu2(x)
         x = self.pool1(x)
-
-        x = self.conv3(x)
-        x = self.relu3(x)
-        x = self.conv4(x)
-        x = self.relu4(x)
-        x = self.pool2(x)
-        #
-        # x = self.conv5(x)
-        # x = self.relu5(x)
-        # x = self.conv6(x)
-        # x = self.relu6(x)
-        # x = self.pool3(x)
-        #
-        # x = self.conv7(x)
-        # x = self.relu7(x)
-        # x = self.conv8(x)
-        # x = self.relu8(x)
-        # x = self.pool4(x)
 
         x = torch.flatten(x, 1)
         x = self.fc1(x)
@@ -321,7 +275,23 @@ def display_performance(model, device, data_loader):
         fontsize=30
     )
     plt.show()
-                
+
+
+def predict(model, image):
+    """
+    Predicts the label of an input image
+    """
+    im = image.resize((150, 150))
+    im = np.asarray(im) / 255
+    im = im.reshape(1, 1, 150, 150)
+    im = torch.from_numpy(im).float()
+    output = model(im)
+    pred = output.argmax(dim=1, keepdim=True).item()
+    classes = {0: 'normal', 1: 'non-covid', 2: 'covid'}
+    prediction = classes[pred]
+    return prediction
+
+
 def load_model(model_name, model_path):
     """
     Load model from file path
@@ -335,4 +305,5 @@ def load_model(model_name, model_path):
         
     model.load_state_dict(torch.load(model_path))
     return model
+
 

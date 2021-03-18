@@ -36,7 +36,7 @@ else:
         model = Normal_VS_Infected().to(device)
     elif model_name == "binary_classifier_2":
         ld_val = load_val(Lung_Val_Dataset_BC2(), batch_size)
-        model = Covid_VS_NonCovid().to(device)
+        model = NonCovid_VS_Covid().to(device)
     else:
         ld_val = load_val(Lung_Val_Dataset_3CC(), batch_size)
         model = ThreeClassesClassifier().to(device)

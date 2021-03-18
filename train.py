@@ -72,7 +72,7 @@ elif model_name == "binary_classifier_2":
 
 # initialize model and optimizer
 if checkpoint:
-    load_model(model_name, checkpoint)
+    model = load_model(model_name, checkpoint)
 
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, betas=(beta1, beta2), weight_decay=weight_decay)
 scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
@@ -99,10 +99,11 @@ for epoch in range(1, epochs + 1):
     # save best checkpoint based on test F1 score
     if epoch == 1:
         best_test_score = test_f1
-    
+
     if save_dir:
-        if test_f1 < best_test_score:
-            torch.save(model.state_dict(), save_dir)   
+        if test_f1 >= best_test_score:
+            torch.save(model.state_dict(), save_dir)
+            best_test_score = test_f1
             
 # plot learning curves
 plot_curves(train_losses, test_losses, "Loss curves")
