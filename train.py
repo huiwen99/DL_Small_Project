@@ -1,10 +1,10 @@
 import argparse
 from model import *
-from dataloader import *
 from dataset import *
 from utils import plot_curves
 import torch
 import torch.optim
+from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
 import matplotlib.pyplot as plt
 
@@ -45,30 +45,25 @@ device = torch.device("cuda" if use_cuda else "cpu")
 # load dataset and define model
 if model_name == "binary_classifier_1":
     train_dset = Lung_Train_Dataset_BC1()
-    ld_train = load_train(train_dset, batch_size)
-    ld_test = load_test(Lung_Test_Dataset_BC1(), batch_size)
+    ld_train = DataLoader(train_dset, batch_size=batch_size, shuffle=True)
+    ld_test = DataLoader(Lung_Test_Dataset_BC1(), batch_size=batch_size, shuffle=True)
     model = Normal_VS_Infected().to(device)
 
     # weights for loss function
     normal_class = train_dset.dataset_numbers['normal']
-    infected_class = train_dset.dataset_numbers['non-covid']+train_dset.dataset_numbers['covid']
+    infected_class = train_dset.dataset_numbers['non-covid'] + train_dset.dataset_numbers['covid']
     weights = torch.tensor([1./normal_class, 1./infected_class]).to(device)
     
 elif model_name == "binary_classifier_2":
     train_dset = Lung_Train_Dataset_BC2()
-    ld_train = load_train(train_dset, batch_size)
-    ld_test = load_test(Lung_Test_Dataset_BC2(), batch_size)
+    ld_train = DataLoader(train_dset, batch_size=batch_size, shuffle=True)
+    ld_test = DataLoader(Lung_Test_Dataset_BC2(), batch_size=batch_size, shuffle=True)
     model = NonCovid_VS_Covid().to(device)
 
     # weights for loss function
     noncovid_class = train_dset.dataset_numbers['non-covid']
     covid_class = train_dset.dataset_numbers['covid']
     weights = torch.tensor([1./noncovid_class, 1./covid_class]).to(device)
-
-# else:
-#     ld_train = load_train(Lung_Train_Dataset_3CC(), batch_size)
-#     ld_test = load_test(Lung_Test_Dataset_3CC(), batch_size)
-#     model = ThreeClassesClassifier().to(device)
 
 # initialize model and optimizer
 if checkpoint:

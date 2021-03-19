@@ -1,9 +1,9 @@
 import argparse
 from model import *
-from dataloader import *
 from dataset import *
 import torch
 import torch.optim
+from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
 import matplotlib.pyplot as plt
 
@@ -20,11 +20,12 @@ checkpoint = args.checkpoint
 # set cpu
 device = torch.device("cpu")
 
+# set batch size
 batch_size = 1
 
 # load dataset and define model
 if model_name == "two_binary_classifiers":
-    ld_val = load_val(Lung_Val_Dataset_3CC(), batch_size)
+    ld_val = DataLoader(Lung_Val_Dataset_3CC(), batch_size=batch_size, shuffle=False)
     model = TwoBinaryClassifiers().to(device)
     if checkpoint[0]:
         model.bc1 = load_model("binary_classifier_1", checkpoint[0])
@@ -32,15 +33,12 @@ if model_name == "two_binary_classifiers":
         model.bc2 = load_model("binary_classifier_2", checkpoint[1])
 else:
     if model_name == "binary_classifier_1":
-        ld_val = load_val(Lung_Val_Dataset_BC1(), batch_size)
+        ld_val =  DataLoader(Lung_Val_Dataset_BC1(), batch_size=batch_size, shuffle=False)
         model = Normal_VS_Infected().to(device)
     elif model_name == "binary_classifier_2":
-        ld_val = load_val(Lung_Val_Dataset_BC2(), batch_size)
+        ld_val = DataLoader(Lung_Val_Dataset_BC2(), batch_size=batch_size, shuffle=False)
         model = NonCovid_VS_Covid().to(device)
-    else:
-        ld_val = load_val(Lung_Val_Dataset_3CC(), batch_size)
-        model = ThreeClassesClassifier().to(device)
-        
+
     if checkpoint[0]:
         model = load_model(model_name, checkpoint[0])
 

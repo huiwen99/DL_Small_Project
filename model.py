@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-import datetime
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
 
 class TwoBinaryClassifiers(nn.Module):
     """
@@ -56,7 +56,6 @@ class Normal_VS_Infected(nn.Module):
         self.conv6 = nn.Conv2d(32, 32, 3, padding=1)
         self.relu6 = nn.ReLU()
         self.pool3 = nn.MaxPool2d(5, 5)
-
 
         self.fc1 = nn.Linear(5*5*32,128)
         self.classifier = nn.Linear(128, 2)

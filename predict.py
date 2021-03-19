@@ -31,8 +31,3 @@ with open(image_path, 'rb') as f:
     plt.title("Predicted label: {}".format(prediction))
     plt.show()
     f.close()
-
-
-
-
-
