@@ -19,9 +19,9 @@ Refer to `/model_paths` folder for the saved weights:
 1. `train.py`: Trains either Binary Classifier #1 or Binary Classifier #2  
 
     To train Binary Classifier #1, run the following command:  
-    `%run train.py binary_classifier_1`  
+    `python train.py binary_classifier_1`  
     To train Binary Classifier #2, run the following command:  
-    `%run train.py binary_classifier_2`  
+    `python train.py binary_classifier_2`  
     
     Optional parameters:  
     `--epochs`: set number of training epochs  
@@ -42,11 +42,11 @@ Refer to `/model_paths` folder for the saved weights:
     For example, Binary Classifier #1 is saved as `"./model_paths/bc1.pt"` and Binary Classifier #2 is saved as `"./model_paths/bc2.pt"`.   
     
     Run the following command:  
-    `%run evaluate.py two_binary_classifiers --checkpoint "./model_paths/bc1.pt" "./model_paths/bc2.pt"`  
+    `python evaluate.py two_binary_classifiers --checkpoint "./model_paths/bc1.pt" "./model_paths/bc2.pt"`  
     
 3. `predict.py`: Predicts label of an X-ray image using the model
 
     Run the following command:  
-    `%run predict.py "./model_paths/bc1.pt" "./model_paths/bc2.pt" image_file_path`  
+    `python predict.py "./model_paths/bc1.pt" "./model_paths/bc2.pt" image_file_path`  
     where `image_file_path` is the file path to the X-ray image.
     
